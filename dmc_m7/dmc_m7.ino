@@ -185,6 +185,11 @@ void setup()
   pinMode(LOGIC_SWITCH_PIN, INPUT_PULLUP);
 #endif
 
+#ifdef FAN_PWM_PIN
+  pinMode(FAN_PWM_PIN, OUTPUT);
+  analogWrite(FAN_PWM_PIN, 0); // Start with fan off
+#endif
+
   digitalWrite(LEDR, HIGH);
   digitalWrite(LEDG, HIGH);
   digitalWrite(LEDB, HIGH);
@@ -972,11 +977,14 @@ void loop()
               while (!dmc_msg_read_at_end())
               {
                 int32_t channel = dmc_msg_read_byte() - 1;
-                goMotionOverride[channel].enabled = 1;
-                int32_t posA = dmc_msg_read_dword();
-                int32_t posB = dmc_msg_read_dword();
-                goMotionOverride[channel].posA = posA;
-                goMotionOverride[channel].posB = posB;
+                if (channel >= 0 && channel < MOTOR_COUNT)
+                {
+                  goMotionOverride[channel].enabled = 1;
+                  int32_t posA = dmc_msg_read_dword();
+                  int32_t posB = dmc_msg_read_dword();
+                  goMotionOverride[channel].posA = posA;
+                  goMotionOverride[channel].posB = posB;
+                }
               }
 
               if (dir == 0)
@@ -1157,9 +1165,20 @@ void loop()
               uint8_t value = dmc_msg_read_byte();
               uint32_t flags = dmc_msg_read_dword();
 
+              // Validate DMX channel range (1-512)
+              if (channel < 1 || channel > 512)
+              {
+                responseCode = DMC_ACK_ERR_RANGE;
+                break;
+              }
+
               // DMX implementation would go here
               // For now, acknowledge but don't implement hardware DMX
               // This requires additional hardware (DMX512 transceiver)
+              // Example implementation would be:
+              // if (flags & DMC_DMX_FLAG_FINAL_SET) {
+              //   dmx_send_frame();
+              // }
             }
           }
           else if (cmd == DMC_MSG_RT_UPLOAD_MOVE_DMX)
@@ -1176,11 +1195,23 @@ void loop()
               int32_t frame = dmc_msg_read_dword();
               uint16_t channelCount = dmc_msg_read_word();
 
-              // Skip DMX data for now - would need DMX buffer implementation
-              for (uint16_t i = 0; i < channelCount; i++)
+              // Validate frame range
+              if (frame < 0 || frame >= FRAME_COUNT)
               {
-                dmc_msg_read_word(); // channel
-                dmc_msg_read_byte(); // value
+                responseCode = DMC_ACK_ERR_RANGE;
+              }
+              else if (channelCount > 512)
+              {
+                responseCode = DMC_ACK_ERR_RANGE;
+              }
+              else
+              {
+                // Skip DMX data for now - would need DMX buffer implementation
+                for (uint16_t i = 0; i < channelCount; i++)
+                {
+                  dmc_msg_read_word(); // channel
+                  dmc_msg_read_byte(); // value
+                }
               }
             }
           }
@@ -1198,9 +1229,15 @@ void loop()
             // Fan control command (for cooling stepper drivers)
             uint8_t fanSpeed = dmc_msg_read_byte(); // 0-255
 
-            // Fan control implementation would require PWM output
-            // For now, acknowledge command but don't implement
-            // This could be added to config.h as FAN_PWM_PIN
+            // Fan control implementation
+#ifdef FAN_PWM_PIN
+            // Set PWM duty cycle for fan control
+            // Arduino PWM is typically 0-255
+            analogWrite(FAN_PWM_PIN, fanSpeed);
+#else
+            // Fan pin not configured - acknowledge command but do nothing
+            // Users can enable this by defining FAN_PWM_PIN in config.h
+#endif
           }
           else if (cmd == DMC_MSG_VIRT_CONFIG)
           {

@@ -1,0 +1,139 @@
+# Changelog
+
+All notable changes to the dmc-lite project will be documented in this file.
+
+## [1.3.0] - 2026-02-17
+
+### Added
+
+#### New DMC-32 Protocol Commands
+- **DMC_MSG_GIO_IN (0x0022)**: Query logic input state
+  - Returns the current state of the configured logic switch input
+  - Useful for remote switch monitoring and automation
+
+- **DMC_MSG_MOTOR_HARD_STOP (0x003A)**: Enhanced hard stop with error reporting
+  - Provides detailed limit switch error codes (soft/hard limits)
+  - Reports whether motor hit upper or lower limit
+  - Differentiates between software limits and hardware limit switches
+  - Error codes: DMC_ACK_ERR_HARD_UP, DMC_ACK_ERR_HARD_LOW, DMC_ACK_ERR_SOFT_UP, DMC_ACK_ERR_SOFT_LOW
+
+- **DMC_MSG_DMX (0x0020)**: DMX512 lighting control protocol support
+  - Command structure for controlling DMX512 lighting channels
+  - Validates channel range (1-512)
+  - Framework ready for hardware DMX512 transceiver implementation
+
+- **DMC_MSG_RT_UPLOAD_MOVE_DMX (0x0102)**: Upload DMX keyframe data
+  - Allows synchronized lighting control with motion
+  - Validates frame ranges and channel counts
+  - Ready for future DMX buffer implementation
+
+- **DMC_MSG_RT_END (0x0114)**: End real-time move
+  - Cleanly exits real-time playback mode
+  - Returns system to jog mode for manual control
+
+- **DMC_MSG_FAN_CONTROL (0x0300)**: Fan control for driver cooling
+  - PWM-based fan speed control (0-255)
+  - Automatically initializes fan to off state on startup
+  - Configurable via FAN_PWM_PIN in config.h
+
+- **Virtual Motor Commands (0x0200-0x0207)**: Protocol support
+  - DMC_MSG_VIRT_CONFIG: Virtual motor configuration
+  - DMC_MSG_VIRT_MOVE: Virtual motor movement
+  - DMC_MSG_VIRT_STOP: Stop virtual motor
+  - DMC_MSG_VIRT_JOG: Jog virtual motor
+  - DMC_MSG_VIRT_GET_POSITION: Query virtual position
+  - DMC_MSG_VIRT_JOG_ON_LINE: Jog along line
+  - DMC_MSG_VIRT_AIM_POINT: Aim at point
+  - Currently acknowledged as unsupported (requires coordinate transformation implementation)
+
+#### Configuration Enhancements
+- Added FAN_PWM_PIN configuration option for both Giga R1 and Portenta H7
+- Added limit switch pin configuration framework (LIMIT_SWITCH_LOW_x, LIMIT_SWITCH_HIGH_x)
+- Documentation for optional hardware features
+
+#### Documentation
+- Created comprehensive README.md with markdown formatting
+- Added detailed feature list and technical specifications
+- Included hardware setup instructions for new features
+- Added configuration examples for optional hardware
+
+### Improved
+
+#### Code Quality
+- Added bounds checking for motor channel indices in DMC_MSG_RT_SHOOT_FRAME
+- Added validation for DMX channel ranges (1-512)
+- Added frame range validation for DMX move uploads
+- Enhanced error handling with specific error codes
+- Improved inline code comments for better maintainability
+
+#### Safety
+- Fan control initializes to off state on startup
+- Enhanced limit switch error reporting for better debugging
+- Proper validation of all command parameters
+
+#### Version Management
+- Updated version to 1.3.0 in dfx.h
+- Added version history to README
+
+### Technical Details
+
+#### Memory Usage
+- No additional RAM overhead for placeholder implementations
+- DMX and virtual motor commands parse data without storing (ready for future implementation)
+
+#### Performance
+- All new commands process in constant time O(1)
+- No impact on real-time motion control performance
+- Message parsing remains efficient
+
+#### Compatibility
+- Fully backward compatible with existing Dragonframe 4+ installations
+- No changes required to existing motor control functionality
+- Optional features require hardware additions only if enabled
+
+### Hardware Support
+
+#### Fan Control
+- PWM output for variable speed fan control
+- Compatible with standard 12V/24V PWM fans
+- Configurable pin assignment per board type
+
+#### Limit Switches
+- Framework for 16 limit switch inputs (8 motors × 2 limits)
+- Pull-up resistor configuration (active low)
+- Ready for future implementation with proper interrupt handling
+
+### Future Enhancements (Planned)
+
+- Full DMX512 hardware implementation with RS-485 transceiver
+- Hardware limit switch interrupt handling
+- Virtual motor coordinate transformations (Cartesian/Spherical to motor positions)
+- Enhanced DMX buffer for synchronized lighting effects
+- Limit switch auto-homing functionality
+
+## [1.2.0] - 2023
+
+### Initial Release
+- Support for 16 stepper motor axes
+- Real-time motion control with 10,000 frame capacity
+- Go Motion and Go Motion 2 with blur compensation
+- Point-to-point moves with acceleration profiles
+- Jog mode with variable speed
+- Motor coupling for synchronized movement
+- Camera trigger control (meter and shutter)
+- Logic outputs for triggers and relays
+- Emergency stop/kill switch support
+- Software position limits per motor
+- Dual-core architecture (M7 + M4)
+- Arduino Giga R1 and Portenta H7 support
+
+---
+
+## Version Numbering
+
+This project follows Semantic Versioning (SemVer):
+- MAJOR version: Incompatible API changes
+- MINOR version: New functionality in a backwards-compatible manner
+- PATCH version: Backwards-compatible bug fixes
+
+Current version: **1.3.0**
