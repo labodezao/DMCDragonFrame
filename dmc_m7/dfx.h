@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #define DMC_VERSION_MAJOR 1
-#define DMC_VERSION_MINOR 2
+#define DMC_VERSION_MINOR 3
 #define DMC_VERSION_REV 0
 
 #define MOTOR_COUNT 16

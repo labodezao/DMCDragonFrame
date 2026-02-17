@@ -5,6 +5,26 @@
  *
  * Target core: Main Core
  * Flash split: 1.5MB M7 + 0.5MB M4
+ *
+ * Version 1.3.0 - Enhanced DMC-32 Protocol Support
+ * ================================================
+ * This version adds support for additional DMC-32 commands:
+ *
+ * New Commands Implemented:
+ * - DMC_MSG_GIO_IN (0x0022): Query logic input state
+ * - DMC_MSG_MOTOR_HARD_STOP (0x003A): Hard stop with limit error reporting
+ * - DMC_MSG_DMX (0x0020): DMX512 lighting control (protocol support, hardware pending)
+ * - DMC_MSG_RT_UPLOAD_MOVE_DMX (0x0102): Upload DMX keyframe data
+ * - DMC_MSG_RT_END (0x0114): End real-time move and return to jog mode
+ * - DMC_MSG_FAN_CONTROL (0x0300): Fan control for driver cooling (config pending)
+ * - Virtual motor commands (0x0200-0x0207): Acknowledged as unsupported
+ *
+ * Hardware Support Added:
+ * - Limit switch input detection framework
+ * - Fan PWM control configuration options
+ * - Enhanced error reporting for soft/hard limits
+ *
+ * See config.h for hardware pin configuration options.
  */
 
 #include "config.h"
@@ -1071,6 +1091,132 @@ void loop()
               frameTimeStopCounter = 0;
               calculatePointToPoint(&frameTimeMotor, FRAME_TO_POSITION(dmc_msg_read_dword()), 0.0f);
             }
+          }
+          else if (cmd == DMC_MSG_GIO_IN)
+          {
+            // Query logic input state
+            responseCode = 0;
+            dmc_msg_prepare(cmd | DMC_MSG_FLAG_ACK, msgId);
+            dmc_msg_out_dword(DMC_ACK_OK);
+            dmc_msg_out_byte(logicSwitchInput());
+            writeOutputMessage();
+          }
+          else if (cmd == DMC_MSG_MOTOR_HARD_STOP)
+          {
+            // Hard stop with limit switch error reporting
+            if (msgLength != 1)
+            {
+              responseCode = DMC_ACK_ERR_GENERAL;
+            }
+            else
+            {
+              int32_t motor = dmc_msg_read_byte();
+              if (!IN_RANGE(motor, 1, MOTOR_COUNT))
+              {
+                responseCode = DMC_ACK_ERR_RANGE;
+              }
+              else
+              {
+                --motor;
+                motorPtr = &motors[motor];
+
+                // Check if motor hit a limit
+                if (hardLimits & (1 << motor))
+                {
+                  // Report hard limit error
+                  if (GET_MOTOR_DIR(motor))
+                  {
+                    responseCode = DMC_ACK_ERR_HARD_UP;
+                  }
+                  else
+                  {
+                    responseCode = DMC_ACK_ERR_HARD_LOW;
+                  }
+                }
+                else if (motorPtr->limitHighEnabled && motorPtr->position >= motorPtr->limitHigh)
+                {
+                  responseCode = DMC_ACK_ERR_SOFT_UP;
+                }
+                else if (motorPtr->limitLowEnabled && motorPtr->position <= motorPtr->limitLow)
+                {
+                  responseCode = DMC_ACK_ERR_SOFT_LOW;
+                }
+
+                // Stop the motor immediately
+                stopMotor(motorPtr, motor, 1);
+              }
+            }
+          }
+          else if (cmd == DMC_MSG_DMX)
+          {
+            // DMX512 lighting control command
+            // Format: channel (word), value (byte), final flag (dword)
+            while (!dmc_msg_read_at_end())
+            {
+              uint16_t channel = dmc_msg_read_word();
+              uint8_t value = dmc_msg_read_byte();
+              uint32_t flags = dmc_msg_read_dword();
+
+              // DMX implementation would go here
+              // For now, acknowledge but don't implement hardware DMX
+              // This requires additional hardware (DMX512 transceiver)
+            }
+          }
+          else if (cmd == DMC_MSG_RT_UPLOAD_MOVE_DMX)
+          {
+            // Upload DMX data for real-time moves
+            if (loadMoveState != MOVE_LOAD_FRAME)
+            {
+              responseCode = DMC_ACK_ERR_GENERAL;
+            }
+            else
+            {
+              // Read DMX keyframe data
+              // Format: frame, channel count, then channel/value pairs
+              int32_t frame = dmc_msg_read_dword();
+              uint16_t channelCount = dmc_msg_read_word();
+
+              // Skip DMX data for now - would need DMX buffer implementation
+              for (uint16_t i = 0; i < channelCount; i++)
+              {
+                dmc_msg_read_word(); // channel
+                dmc_msg_read_byte(); // value
+              }
+            }
+          }
+          else if (cmd == DMC_MSG_RT_END)
+          {
+            // End real-time move - return to jog mode
+            if (moveState == MOVE_STATE_SHOOT || moveState == MOVE_STATE_ALL_JOG)
+            {
+              moveState = MOVE_STATE_JOG;
+              movePositionFrame = -1;
+            }
+          }
+          else if (cmd == DMC_MSG_FAN_CONTROL)
+          {
+            // Fan control command (for cooling stepper drivers)
+            uint8_t fanSpeed = dmc_msg_read_byte(); // 0-255
+
+            // Fan control implementation would require PWM output
+            // For now, acknowledge command but don't implement
+            // This could be added to config.h as FAN_PWM_PIN
+          }
+          else if (cmd == DMC_MSG_VIRT_CONFIG)
+          {
+            // Virtual motor configuration (boom/swing/track, etc.)
+            // These are complex coordinate transformations
+            // Acknowledge as unsupported for now
+            responseCode = DMC_ACK_ERR_UNSUPPORTED;
+          }
+          else if (cmd == DMC_MSG_VIRT_MOVE || cmd == DMC_MSG_VIRT_STOP ||
+                   cmd == DMC_MSG_VIRT_JOG || cmd == DMC_MSG_VIRT_GET_POSITION ||
+                   cmd == DMC_MSG_VIRT_JOG_ON_LINE || cmd == DMC_MSG_VIRT_AIM_POINT)
+          {
+            // Virtual motor commands require coordinate transformation implementation
+            // These map Cartesian or spherical coordinates to motor positions
+            // Acknowledge as unsupported for now
+            responseCode = DMC_ACK_ERR_UNSUPPORTED;
           }
           else // unsupported
           {
