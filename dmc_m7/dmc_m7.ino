@@ -6,6 +6,16 @@
  * Target core: Main Core
  * Flash split: 1.5MB M7 + 0.5MB M4
  *
+ * Version 1.4.0 - Extended I/O Capabilities
+ * ==========================================
+ * This version adds extensive input capabilities for commercial-grade applications:
+ *
+ * New Features in v1.4.0:
+ * - 16 limit switch inputs (8 motors × 2 limits each)
+ * - 12 analog input channels (sensors, potentiometers, feedback)
+ * - DMC_MSG_ANALOG_IN (0x0301): Read analog input channels
+ * - DMC_MSG_LIMIT_SWITCH_STATUS (0x0302): Query all limit switches
+ *
  * Version 1.3.0 - Enhanced DMC-32 Protocol Support
  * ================================================
  * This version adds support for additional DMC-32 commands:
@@ -163,6 +173,70 @@ int8_t logicSwitchInput()
 #endif
 }
 
+uint16_t readLimitSwitches()
+{
+  uint16_t switches = 0;
+#ifdef LIMIT_SWITCH_LOW_1
+  if (!digitalRead(LIMIT_SWITCH_LOW_1)) switches |= (1 << 0);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_1
+  if (!digitalRead(LIMIT_SWITCH_HIGH_1)) switches |= (1 << 1);
+#endif
+#ifdef LIMIT_SWITCH_LOW_2
+  if (!digitalRead(LIMIT_SWITCH_LOW_2)) switches |= (1 << 2);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_2
+  if (!digitalRead(LIMIT_SWITCH_HIGH_2)) switches |= (1 << 3);
+#endif
+#ifdef LIMIT_SWITCH_LOW_3
+  if (!digitalRead(LIMIT_SWITCH_LOW_3)) switches |= (1 << 4);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_3
+  if (!digitalRead(LIMIT_SWITCH_HIGH_3)) switches |= (1 << 5);
+#endif
+#ifdef LIMIT_SWITCH_LOW_4
+  if (!digitalRead(LIMIT_SWITCH_LOW_4)) switches |= (1 << 6);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_4
+  if (!digitalRead(LIMIT_SWITCH_HIGH_4)) switches |= (1 << 7);
+#endif
+#ifdef LIMIT_SWITCH_LOW_5
+  if (!digitalRead(LIMIT_SWITCH_LOW_5)) switches |= (1 << 8);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_5
+  if (!digitalRead(LIMIT_SWITCH_HIGH_5)) switches |= (1 << 9);
+#endif
+#ifdef LIMIT_SWITCH_LOW_6
+  if (!digitalRead(LIMIT_SWITCH_LOW_6)) switches |= (1 << 10);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_6
+  if (!digitalRead(LIMIT_SWITCH_HIGH_6)) switches |= (1 << 11);
+#endif
+#ifdef LIMIT_SWITCH_LOW_7
+  if (!digitalRead(LIMIT_SWITCH_LOW_7)) switches |= (1 << 12);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_7
+  if (!digitalRead(LIMIT_SWITCH_HIGH_7)) switches |= (1 << 13);
+#endif
+#ifdef LIMIT_SWITCH_LOW_8
+  if (!digitalRead(LIMIT_SWITCH_LOW_8)) switches |= (1 << 14);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_8
+  if (!digitalRead(LIMIT_SWITCH_HIGH_8)) switches |= (1 << 15);
+#endif
+  return switches;
+}
+
+uint16_t readAnalogInput(uint8_t channel)
+{
+  // Arduino Giga R1 has 12 ADC channels (A0-A11)
+  if (channel < 12)
+  {
+    return analogRead(A0 + channel);
+  }
+  return 0;
+}
+
 void setCamera(uint8_t val)
 {
   sharedData->cameraValue = val;
@@ -183,6 +257,56 @@ void setup()
 
 #ifdef LOGIC_SWITCH_PIN
   pinMode(LOGIC_SWITCH_PIN, INPUT_PULLUP);
+#endif
+
+  // Initialize limit switch pins
+#ifdef LIMIT_SWITCH_LOW_1
+  pinMode(LIMIT_SWITCH_LOW_1, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_1
+  pinMode(LIMIT_SWITCH_HIGH_1, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_LOW_2
+  pinMode(LIMIT_SWITCH_LOW_2, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_2
+  pinMode(LIMIT_SWITCH_HIGH_2, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_LOW_3
+  pinMode(LIMIT_SWITCH_LOW_3, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_3
+  pinMode(LIMIT_SWITCH_HIGH_3, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_LOW_4
+  pinMode(LIMIT_SWITCH_LOW_4, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_4
+  pinMode(LIMIT_SWITCH_HIGH_4, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_LOW_5
+  pinMode(LIMIT_SWITCH_LOW_5, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_5
+  pinMode(LIMIT_SWITCH_HIGH_5, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_LOW_6
+  pinMode(LIMIT_SWITCH_LOW_6, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_6
+  pinMode(LIMIT_SWITCH_HIGH_6, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_LOW_7
+  pinMode(LIMIT_SWITCH_LOW_7, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_7
+  pinMode(LIMIT_SWITCH_HIGH_7, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_LOW_8
+  pinMode(LIMIT_SWITCH_LOW_8, INPUT_PULLUP);
+#endif
+#ifdef LIMIT_SWITCH_HIGH_8
+  pinMode(LIMIT_SWITCH_HIGH_8, INPUT_PULLUP);
 #endif
 
 #ifdef FAN_PWM_PIN
@@ -1238,6 +1362,33 @@ void loop()
             // Fan pin not configured - acknowledge command but do nothing
             // Users can enable this by defining FAN_PWM_PIN in config.h
 #endif
+          }
+          else if (cmd == DMC_MSG_ANALOG_IN)
+          {
+            // Read analog input channel
+            uint8_t channel = dmc_msg_read_byte();
+
+            if (channel >= 12)
+            {
+              responseCode = DMC_ACK_ERR_RANGE;
+            }
+            else
+            {
+              responseCode = 0;
+              dmc_msg_prepare(cmd | DMC_MSG_FLAG_ACK, msgId);
+              dmc_msg_out_dword(DMC_ACK_OK);
+              dmc_msg_out_word(readAnalogInput(channel));
+              writeOutputMessage();
+            }
+          }
+          else if (cmd == DMC_MSG_LIMIT_SWITCH_STATUS)
+          {
+            // Query limit switch status (16 switches for 8 motors)
+            responseCode = 0;
+            dmc_msg_prepare(cmd | DMC_MSG_FLAG_ACK, msgId);
+            dmc_msg_out_dword(DMC_ACK_OK);
+            dmc_msg_out_word(readLimitSwitches());
+            writeOutputMessage();
           }
           else if (cmd == DMC_MSG_VIRT_CONFIG)
           {

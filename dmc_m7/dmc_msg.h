@@ -60,6 +60,8 @@
 #define DMC_MSG_VIRT_AIM_POINT 0x0207
 
 #define DMC_MSG_FAN_CONTROL 0x0300
+#define DMC_MSG_ANALOG_IN 0x0301
+#define DMC_MSG_LIMIT_SWITCH_STATUS 0x0302
 
 // ack/error codes
 #define DMC_ACK_OK 0x0010
