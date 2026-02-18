@@ -10,17 +10,27 @@
 #include <stdint.h>
 
 #define DMC_VERSION_MAJOR 1
-#define DMC_VERSION_MINOR 5
+#define DMC_VERSION_MINOR 6
 #define DMC_VERSION_REV 0
 
-#define MOTOR_COUNT 16
+// Configuration: Enable SDRAM for expanded capacity
+// Uncomment the line below to use external SDRAM (8 MB)
+// This allows for 32 motors and 20,000 frames
+//#define USE_SDRAM
+
+#ifdef USE_SDRAM
+  #define MOTOR_COUNT 32
+  #define FRAME_COUNT 20000
+#else
+  #define MOTOR_COUNT 16
+  #define FRAME_COUNT 10000
+#endif
+
 #define MOTOR_CAM_COUNT 9
 #define GIO_OUTPUTS 2
 #define GIO_INPUTS 1u
 
 #define P2P_MOVE_COUNT 8
-
-#define FRAME_COUNT 10000
 
 #define MOVE_LOAD_NONE 0
 #define MOVE_LOAD_FRAME 1
