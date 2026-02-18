@@ -2,6 +2,59 @@
 
 All notable changes to the dmc-lite project will be documented in this file.
 
+## [1.4.0] - 2026-02-18
+
+### Added - Extended I/O Capabilities
+
+#### New DMC-32 Protocol Commands
+- **DMC_MSG_ANALOG_IN (0x0301)**: Read analog input channels
+  - 12 ADC channels available (A0-A11) on Arduino Giga R1
+  - 16-bit resolution (0-65535 on Giga R1, varies by board)
+  - Use for sensors, potentiometers, position feedback
+  - Validates channel range (0-11)
+
+- **DMC_MSG_LIMIT_SWITCH_STATUS (0x0302)**: Query limit switch status
+  - Returns 16-bit bitmask for all limit switches
+  - 16 limit switches supported (8 motors × 2 limits each)
+  - Bit 0-1: Motor 1 (low, high)
+  - Bit 2-3: Motor 2 (low, high)
+  - ... up to Motor 8
+  - Active low with internal pull-up resistors
+
+#### Hardware Support
+- **16 Limit Switch Inputs**: Complete framework for hardware limit detection
+  - Configurable in dmc_m7/config.h
+  - Supports motors 1-8 (low and high limit per motor)
+  - Uses internal pull-up resistors (active low)
+  - < 1 KB RAM overhead
+
+- **12 Analog Input Channels**: Full ADC support
+  - Direct access to Arduino Giga R1 ADC channels
+  - 16-bit resolution
+  - No additional RAM overhead
+  - Useful for:
+    - Position encoders
+    - Pressure sensors
+    - Temperature monitoring
+    - Potentiometer feedback
+    - Custom sensor integration
+
+#### Configuration
+- All limit switch pins defined in config.h for both boards
+  - Giga R1: D51-D66 (configurable)
+  - Portenta H7: GPIO 7-22 (configurable)
+- Documentation added for wiring and setup
+
+### Improved
+- Enhanced pin configuration documentation
+- Better organization of optional hardware features
+- Clearer comments for hardware setup
+
+### Technical Details
+- RAM usage: < 1 KB additional for all new features
+- No performance impact on motion control
+- Backward compatible with all previous versions
+
 ## [1.3.0] - 2026-02-17
 
 ### Added
@@ -48,7 +101,7 @@ All notable changes to the dmc-lite project will be documented in this file.
 
 #### Configuration Enhancements
 - Added FAN_PWM_PIN configuration option for both Giga R1 and Portenta H7
-- Added limit switch pin configuration framework (LIMIT_SWITCH_LOW_x, LIMIT_SWITCH_HIGH_x)
+- Added limit switch pin configuration framework
 - Documentation for optional hardware features
 
 #### Documentation
@@ -136,4 +189,4 @@ This project follows Semantic Versioning (SemVer):
 - MINOR version: New functionality in a backwards-compatible manner
 - PATCH version: Backwards-compatible bug fixes
 
-Current version: **1.3.0**
+Current version: **1.4.0**

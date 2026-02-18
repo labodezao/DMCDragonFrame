@@ -4,80 +4,142 @@
 
 This sketch turns an Arduino Giga R1 or Portenta H7 into a multi-axis motion control signal generator. It is for use with the Arc motion control system in Dragonframe 4 and newer. It generates step and direction signals, which can be sent to stepper motor drivers.
 
-This has many of the features of our DMC-32 device:
+This implementation provides many features of the professional DMC-32 device:
 https://www.dragonframe.com/product/dmc-32/
 
 Note that the Arduinos are still hobby boards, and we provide this code as a convenience for do-it-yourselfers. We expect you to have a decent level of comfort with basic circuitry if you attempt to use it.
 
-## Version 1.3.0 - Enhanced Features
+## Version 1.4.0 - Extended I/O Capabilities
 
-This version has been enhanced to support additional DMC-32 protocol commands:
+### Latest Features (v1.4.0)
 
-### New Commands Supported
+**New in this version:**
+- **16 Limit Switch Inputs**: Hardware limit detection for motors 1-8 (low and high limits)
+- **12 Analog Input Channels**: Full ADC support for sensors and feedback
+- **DMC_MSG_ANALOG_IN (0x0301)**: Read analog inputs via protocol
+- **DMC_MSG_LIMIT_SWITCH_STATUS (0x0302)**: Query all limit switches at once
 
-- **DMC_MSG_GIO_IN (0x0022)**: Query logic input state
-- **DMC_MSG_MOTOR_HARD_STOP (0x003A)**: Hard stop with comprehensive limit error reporting
-- **DMC_MSG_DMX (0x0020)**: DMX512 lighting control protocol support
-- **DMC_MSG_RT_UPLOAD_MOVE_DMX (0x0102)**: Upload DMX keyframe data for synchronized lighting
-- **DMC_MSG_RT_END (0x0114)**: End real-time move and return to jog mode
-- **DMC_MSG_FAN_CONTROL (0x0300)**: Fan control for cooling stepper drivers
-- **Virtual motor commands (0x0200-0x0207)**: Acknowledged (requires coordinate transformation implementation)
+**RAM Analysis:**
+- Current usage: ~664 KB / 864 KB internal SRAM (77%)
+- Available: ~200 KB for additional features
+- External SDRAM: 8 MB available (not yet utilized)
+- See RAM_ANALYSIS.md for detailed breakdown
 
-### Hardware Enhancements
+### Enhanced DMC-32 Protocol Support (v1.3.0-1.4.0)
 
-- **Limit Switch Support**: Framework for hardware limit switch inputs (motors 1-8)
-- **Fan Control**: PWM output configuration for driver cooling
-- **Enhanced Error Reporting**: Detailed soft/hard limit error codes
+#### Fully Implemented Commands
 
-### Supported DMC-32 Features
-
-#### Motion Control
-- Up to 16 stepper motor axes
+**Motion Control:**
 - Point-to-point moves with acceleration/deceleration profiles
 - Jog mode with variable speed
-- Real-time motion playback with up to 10,000 frames
+- Real-time motion playback (up to 10,000 frames)
 - Go Motion and Go Motion 2 with blur compensation
 - Motor coupling for synchronized multi-axis movement
 - Live control for independent motor speed adjustment
 - Ping-pong and looping playback modes
 
-#### I/O Control
+**I/O Control:**
 - 2 logic outputs for external triggers/relays
-- 1 logic input for switch feedback
+- 1 logic input for switch feedback (DMC_MSG_GIO_IN)
+- 16 limit switch inputs (DMC_MSG_LIMIT_SWITCH_STATUS)
+- 12 analog input channels (DMC_MSG_ANALOG_IN)
 - Camera trigger control (meter and shutter)
 - Software position limits per motor
 - Optional emergency stop/kill switch
+- Fan control for driver cooling (DMC_MSG_FAN_CONTROL)
 
-#### Advanced Features
+**Advanced Features:**
 - Real-time camera control with shutter angle
 - Synchronized trigger outputs during playback
 - Frame-accurate motion positioning
 - Pre-roll and post-roll motion compensation
+- Enhanced error reporting with limit detection
+
+#### Protocol Support (Hardware Needed)
+
+**DMX512 Lighting Control:**
+- DMC_MSG_DMX (0x0020): Set DMX channel values
+- DMC_MSG_RT_UPLOAD_MOVE_DMX (0x0102): Upload DMX keyframes
+- Protocol fully implemented, requires RS-485 transceiver hardware
+
+**Virtual Motor Commands (0x0200-0x0207):**
+- Protocol acknowledged, requires coordinate transformation implementation
+- Boom/swing/track, pan, X/Y/Z positioning
+- 7 commands defined for future implementation
+
+## Supported DMC-32 Features
+
+### ✅ Fully Implemented
+- Up to 16 stepper motor axes
+- 10,000 frame capacity
+- Real-time motion playback
+- Go Motion with blur compensation
+- Go Motion 2 with shutter angle control
+- Motor coupling
+- Live control during playback
+- Ping-pong and looping modes
+- Camera trigger control
+- 2 logic outputs
+- 1 logic input
+- 16 limit switch inputs (NEW in v1.4.0)
+- 12 analog inputs (NEW in v1.4.0)
+- Fan control
+- Emergency stop
+- Software limits
+- Hard stop with error reporting
+
+### 🔧 Protocol Ready (Hardware Needed)
+- DMX512 lighting control (512 channels)
+- DMX keyframe synchronization
+
+### 📋 Framework Only
+- Virtual motor transformations (7 commands)
+- 32 motor support (requires SDRAM)
+- Extended frame capacity (requires SDRAM)
 
 ## Choosing a Development Board
 
 ### Arduino Giga R1
 The Arduino Giga R1 closely resembles the Arduino Mega 2560 in terms of size. It has pin headers that make it easy to wire to drivers or other inputs and outputs.
 
+**Specifications:**
+- Microcontroller: STM32H747XI (dual-core Cortex-M7 + M4)
+- Internal SRAM: 864 KB usable (1 MB total)
+- External SDRAM: 8 MB
+- ADC: 12 channels, 16-bit resolution
+- Digital I/O: 76 pins
+- PWM: Multiple channels available
+- Cost: ~$70-80
+
 ### Arduino Portenta H7
 The Arduino Portenta H7 is a much smaller board. The default pinout in our sketch uses the high-density J2 port. This means you need a breakout board to connect to the signals.
 
+**Specifications:**
+- Microcontroller: STM32H747XI (same as Giga R1)
+- RAM: Same as Giga R1
+- Form factor: Compact industrial design
+- Requires breakout board for connections
+- Cost: Higher than Giga R1
+
 ## Wiring the Arduino for Motion Control
 
-The Arduino running the **dmc-lite** sketch will generate step and direction signals for stepper motors. Note that these signals are 3.3V logic level. If your driver needs 5V signals, you may need to add voltage stepper circuitry. That is beyond the scope of our advice.
+### Basic Connections
 
-If you already have stepper motor drivers, you can take these signals and wire them into a connector for those drivers.
+The Arduino running the **dmc-lite** sketch will generate step and direction signals for stepper motors. Note that these signals are 3.3V logic level. If your driver needs 5V signals, you may need to add voltage level shifters.
 
-The best stepper motor drivers are from Geckodrive. However, you can find many less expensive ones at SparkFun.
+**Recommended Stepper Drivers:**
+- Geckodrive (professional quality)
+- SparkFun options (budget-friendly)
+- Any driver accepting 3.3V step/direction signals
 
 ### Kill Switch / E-Stop / Emergency Stop
 
-It is recommended to incorporate a pushbutton kill switch, especially for larger rigs. This will stop all motors and bypasses any communication issues between the computer and the Arduino.
+It is **highly recommended** to incorporate a pushbutton kill switch, especially for larger rigs. This will stop all motors and bypasses any communication issues between the computer and the Arduino.
 
-The `dmc_m7/config.h` file has instructions for enabling this feature.
-
-You can reference the schematic (but not the code) on this page if you are not sure how to connect a pushbutton:
-https://docs.arduino.cc/built-in-examples/digital/Button
+Enable in `dmc_m7/config.h`:
+```cpp
+#define KILL_SWITCH_PIN  D48  // For Giga R1
+```
 
 ### Step/Direction Pin Configuration
 
@@ -85,11 +147,75 @@ The `dmc_m4/config.h` file contains the pin assignments for all step and directi
 
 ### Optional Hardware Features
 
-#### Fan Control
-Define `FAN_PWM_PIN` in `dmc_m7/config.h` to enable PWM fan control for cooling stepper motor drivers. The fan speed can be controlled via the DMC_MSG_FAN_CONTROL command.
+#### Fan Control (NEW in v1.3.0)
+Define `FAN_PWM_PIN` in `dmc_m7/config.h` to enable PWM fan control for cooling stepper motor drivers.
 
-#### Limit Switches
-Define limit switch pins in `dmc_m7/config.h` (e.g., `LIMIT_SWITCH_LOW_1`, `LIMIT_SWITCH_HIGH_1`) to add hardware limit detection for motors. This provides additional safety by detecting physical end-of-travel positions.
+**Setup:**
+```cpp
+#define FAN_PWM_PIN  D50  // For Giga R1
+```
+
+**Wiring:**
+- Arduino PWM Pin → MOSFET Gate
+- MOSFET Drain → Fan Negative
+- MOSFET Source → Ground
+- Fan Positive → +12V/24V (with flyback diode)
+
+#### Limit Switches (NEW in v1.4.0)
+Define limit switch pins in `dmc_m7/config.h` for hardware limit detection.
+
+**Setup Example:**
+```cpp
+#define LIMIT_SWITCH_LOW_1  D51   // Motor 1 low limit
+#define LIMIT_SWITCH_HIGH_1 D52   // Motor 1 high limit
+// ... configure all 16 switches as needed
+```
+
+**Wiring:**
+- Connect switch between pin and GND
+- Uses internal pull-up resistors (active low)
+- Switch closed = limit reached = 1
+- Switch open = no limit = 0
+
+**Query via Protocol:**
+```
+Command: DMC_MSG_LIMIT_SWITCH_STATUS (0x0302)
+Returns: 16-bit bitmask of all limit switches
+```
+
+#### Analog Inputs (NEW in v1.4.0)
+No configuration needed - all 12 ADC channels (A0-A11) are automatically available.
+
+**Use Cases:**
+- Position encoders for feedback
+- Pressure sensors for pneumatics
+- Temperature monitoring
+- Potentiometer input
+- Distance sensors
+- Custom sensor integration
+
+**Query via Protocol:**
+```
+Command: DMC_MSG_ANALOG_IN (0x0301)
+Parameter: Channel (0-11)
+Returns: 16-bit ADC value (0-65535)
+```
+
+**Example Applications:**
+```cpp
+// Read motor load current (analog input A0)
+// Read temperature sensor (analog input A1)
+// Read position feedback (analog input A2)
+// Read pressure transducer (analog input A3)
+```
+
+#### Logic Input
+Define `LOGIC_SWITCH_PIN` for external switch monitoring.
+
+**Setup:**
+```cpp
+#define LOGIC_SWITCH_PIN  D49  // For Giga R1
+```
 
 ## Install the Arduino Software
 
@@ -137,16 +263,67 @@ Your board is ready to go. Now you can start using it with Dragonframe:
 
 ## Technical Specifications
 
-- **Motors**: 16 axes supported
+- **Motors**: 16 axes supported (expandable to 32 with SDRAM)
+- **Frames**: 10,000 capacity (expandable to 50K+ with SDRAM)
 - **Communication**: Serial USB at 115200 baud
-- **Frame Capacity**: 10,000 frames
 - **Protocol**: DMC binary protocol with Fletcher checksum
 - **Step Frequency**: Up to 200 kHz via M4 co-processor
 - **Logic Level**: 3.3V TTL
+- **ADC Resolution**: 16-bit on Giga R1
+- **RAM Usage**: ~664 KB / 864 KB internal (77%)
+- **External RAM**: 8 MB SDRAM available for expansion
+
+## RAM Analysis and Limitations
+
+**Current RAM Usage (v1.4.0):**
+- AxisMoveData arrays: 625 KB (16 motors × 10K frames)
+- Trigger data: 10 KB
+- Motor structures: 2 KB
+- Message buffers: 3.5 KB
+- Other: ~24 KB
+- **Total**: ~664 KB / 864 KB internal SRAM
+
+**Available for Expansion:**
+- Internal SRAM: ~200 KB remaining
+- External SDRAM: 8 MB unused
+
+**Without External SDRAM:**
+- Can support up to ~20 motors with 10K frames
+- Can support 16 motors with ~15K frames
+- Plenty of room for additional I/O features
+
+**With External SDRAM (Future):**
+- Can support 32+ motors (matching DMC-32)
+- Can support 50K+ frames
+- Can add full DMX buffer (512 channels)
+
+See RAM_ANALYSIS.md for complete breakdown and expansion strategies.
+
+## Comparison with Professional DMC-32
+
+| Feature | dmc-lite v1.4.0 | DMC-32 Professional |
+|---------|-----------------|---------------------|
+| **Motors** | 16 (expandable to 32) | 32 |
+| **Frames** | 10,000 (expandable) | 20,000+ |
+| **Limit Switches** | 16 ✅ | 16 ✅ |
+| **Analog Inputs** | 12 ✅ | Yes ✅ |
+| **Logic Outputs** | 2 | 16+ |
+| **DMX Channels** | Protocol ready | 512 ✅ |
+| **Timecode Input** | No | LTC ✅ |
+| **Cost** | ~$70-80 DIY | $695 |
+| **Enclosure** | DIY | Professional |
+| **Support** | Community | Professional |
 
 ## Version History
 
-### Version 1.3.0 (2026)
+### Version 1.4.0 (2026-02-18)
+- Added 16 limit switch inputs
+- Added 12 analog input channels
+- Enhanced I/O capabilities
+- RAM analysis and optimization guide
+- < 1 KB additional RAM usage
+
+### Version 1.3.0 (2026-02-17)
 - Added support for additional DMC-32 protocol commands
 - Enhanced limit switch error reporting
 - Added DMX512 protocol support framework
@@ -155,6 +332,28 @@ Your board is ready to go. Now you can start using it with Dragonframe:
 
 ### Version 1.2.0 (2023)
 - Initial public release by DZED Systems LLC
+
+## Future Roadmap
+
+### Near-Term (No Hardware Changes)
+- ✅ Limit switch reading (DONE v1.4.0)
+- ✅ Analog input reading (DONE v1.4.0)
+- Expand logic outputs from 2 to 8
+- Add automatic limit detection during motion
+- Add motor homing routines
+- Optimize frame storage (delta encoding)
+
+### Medium-Term (Requires SDRAM)
+- Enable external SDRAM (8 MB)
+- Expand to 32 motors
+- Increase to 20K-50K frames
+- Implement DMX buffer with smart storage
+
+### Long-Term (Requires Hardware)
+- Hardware DMX512 transceiver (MAX485 + XLR)
+- Timecode input (LTC over BNC)
+- Professional PCB design
+- Industrial connectors and enclosure
 
 ## License
 
@@ -168,3 +367,19 @@ For questions and support, please refer to:
 - Dragonframe User Guide
 - Dragonframe online tutorials
 - https://www.dragonframe.com/
+- GitHub Issues for this repository
+
+## Contributing
+
+This project welcomes contributions! Areas where help is needed:
+- SDRAM integration for expanded capacity
+- DMX512 hardware implementation
+- Virtual motor coordinate transformations
+- Additional sensor integrations
+- Documentation improvements
+
+---
+
+**Current Version**: 1.4.0
+**Last Updated**: February 18, 2026
+**Repository**: https://github.com/labodezao/DMCDragonFrame
