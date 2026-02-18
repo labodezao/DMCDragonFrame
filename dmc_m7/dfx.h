@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #define DMC_VERSION_MAJOR 1
-#define DMC_VERSION_MINOR 7
+#define DMC_VERSION_MINOR 8
 #define DMC_VERSION_REV 0
 
 // Configuration: Enable SDRAM for expanded capacity

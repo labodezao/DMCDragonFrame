@@ -9,6 +9,29 @@ https://www.dragonframe.com/product/dmc-32/
 
 Note that the Arduinos are still hobby boards, and we provide this code as a convenience for do-it-yourselfers. We expect you to have a decent level of comfort with basic circuitry if you attempt to use it.
 
+## Version 1.8.0 - OLED Display Support
+
+### Latest Features (v1.8.0) 📺
+
+**REAL-TIME VISUAL FEEDBACK:**
+- **OLED Display**: 128x64 SSD1306 I2C display for on-device status monitoring
+- **System Status**: View connection state, motor count, frame capacity, and move state
+- **Error Display**: Real-time error messages and alerts on-screen
+- **Multiple Modes**: Status, Motors, Limits, Errors, and Info screens
+- **Low Overhead**: <2% CPU, ~4 KB RAM, 10 Hz non-blocking updates
+
+**Display Features:**
+- Connection status indicator (connected/disconnected)
+- Current move state (Jog, Pre-roll, Shooting, etc.)
+- Motor and frame capacity information
+- Error message notifications
+- System version and uptime
+- Optional feature (works without display connected)
+
+See `OLED_DISPLAY.md` for complete hardware setup and configuration guide.
+
+---
+
 ## Version 1.7.0 - Professional Cinematography Features
 
 ### Latest Features (v1.7.0) 🎬
@@ -182,6 +205,34 @@ The `dmc_m4/config.h` file contains the pin assignments for all step and directi
 
 ### Optional Hardware Features
 
+#### OLED Display (NEW in v1.8.0)
+Add a 128x64 SSD1306 I2C OLED display for real-time status monitoring.
+
+**Setup:**
+```cpp
+#define OLED_DISPLAY_ENABLED      // Enable display support
+#define OLED_I2C_ADDRESS 0x3C     // I2C address (0x3C or 0x3D)
+```
+
+**Wiring (Arduino Giga R1):**
+- Display VCC → Arduino 3.3V or 5V
+- Display GND → Arduino GND
+- Display SDA → Arduino SDA (Pin 20)
+- Display SCL → Arduino SCL (Pin 21)
+
+**Required Libraries:**
+- Adafruit SSD1306
+- Adafruit GFX Library
+
+**Features:**
+- Connection status display
+- Motor count and frame capacity
+- Current move state
+- Real-time error messages
+- System information
+
+See `OLED_DISPLAY.md` for complete setup instructions.
+
 #### Fan Control (NEW in v1.3.0)
 Define `FAN_PWM_PIN` in `dmc_m7/config.h` to enable PWM fan control for cooling stepper motor drivers.
 
@@ -336,20 +387,32 @@ See RAM_ANALYSIS.md for complete breakdown and expansion strategies.
 
 ## Comparison with Professional DMC-32
 
-| Feature | dmc-lite v1.4.0 | DMC-32 Professional |
+| Feature | dmc-lite v1.8.0 | DMC-32 Professional |
 |---------|-----------------|---------------------|
 | **Motors** | 16 (expandable to 32) | 32 |
 | **Frames** | 10,000 (expandable) | 20,000+ |
+| **OLED Display** | 128x64 I2C ✅ | Yes ✅ |
 | **Limit Switches** | 16 ✅ | 16 ✅ |
 | **Analog Inputs** | 12 ✅ | Yes ✅ |
 | **Logic Outputs** | 2 | 16+ |
 | **DMX Channels** | Protocol ready | 512 ✅ |
-| **Timecode Input** | No | LTC ✅ |
-| **Cost** | ~$70-80 DIY | $695 |
+| **Timecode Input** | LTC ✅ | LTC ✅ |
+| **Rotary Encoders** | 8 ✅ | Yes ✅ |
+| **Backlash Comp** | Yes ✅ | Yes ✅ |
+| **Cost** | ~$75-85 DIY | $695 |
 | **Enclosure** | DIY | Professional |
 | **Support** | Community | Professional |
 
 ## Version History
+
+### Version 1.8.0 (2026-02-18)
+- Added OLED display support (128x64 SSD1306 I2C)
+- Real-time status display with multiple screen modes
+- Connection status and error message display
+- Motor count, frame capacity, and move state indicators
+- Low overhead: <2% CPU, ~4 KB RAM
+- Optional feature (graceful fallback if display not connected)
+- Comprehensive documentation in OLED_DISPLAY.md
 
 ### Version 1.4.0 (2026-02-18)
 - Added 16 limit switch inputs
@@ -415,6 +478,6 @@ This project welcomes contributions! Areas where help is needed:
 
 ---
 
-**Current Version**: 1.4.0
+**Current Version**: 1.8.0
 **Last Updated**: February 18, 2026
 **Repository**: https://github.com/labodezao/DMCDragonFrame

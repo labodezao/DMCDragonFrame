@@ -6,6 +6,13 @@
  *
  */
 
+// OLED Display Configuration
+// Uncomment to enable OLED display support (128x64 SSD1306 I2C)
+// Requires Adafruit_SSD1306 and Adafruit_GFX libraries
+// Default I2C address is 0x3C (can be changed to 0x3D if needed)
+//#define OLED_DISPLAY_ENABLED
+//#define OLED_I2C_ADDRESS 0x3C
+
 #ifdef ARDUINO_ARCH_MBED_GIGA
 
 #define LOGIC_OUT_0 D40

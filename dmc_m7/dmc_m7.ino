@@ -71,6 +71,7 @@
 #include "dfx.h"
 #include "dmc_msg.h"
 #include "motion.h"
+#include "display.h"
 
 #include <RPC.h>
 
@@ -98,6 +99,9 @@ uint32_t messageQueue; // queued messages
  * Program state information
  */
 static int32_t moveState;
+
+// Helper macro to update move state and notify display
+#define SET_MOVE_STATE(state) do { moveState = (state); display_set_move_state(moveState); } while(0)
 
 /*
  * Message state machine variables.
@@ -455,7 +459,7 @@ void setup()
   stopAllLastTime = 0;
   exceptionCode = 0;
   motorsSendPosition = 0;
-  moveState = MOVE_STATE_JOG;
+  SET_MOVE_STATE(MOVE_STATE_JOG);
   syncTriggers = 0;
 
   pinMode(LOGIC_OUT_0, OUTPUT);
@@ -514,6 +518,13 @@ void setup()
   // send hello message on startup
   sendHello(0);
 
+  // Initialize OLED display (if enabled)
+  if (display_init()) {
+    display_set_motor_info(MOTOR_COUNT, FRAME_COUNT);
+    display_set_connected(false);
+    display_set_move_state(moveState);
+  }
+
   switchInput = logicSwitchInput();
 }
 
@@ -540,6 +551,9 @@ void loop()
 
     // Periodic sensor reading: Read limit switches every update cycle (50 Hz)
     hardLimits = readLimitSwitches();
+
+    // Update OLED display with current system status (10 Hz throttled in display_update)
+    display_update();
 
 #ifdef KILL_SWITCH_PIN
     eStopOn = !digitalRead(KILL_SWITCH_PIN);
@@ -782,6 +796,7 @@ void loop()
           {
             responseCode = 0;
             sendHello(msgId);
+            display_set_connected(true);
           }
           else if (cmd == DMC_MSG_GIO_OUT)
           {
