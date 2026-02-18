@@ -6,6 +6,17 @@
  * Target core: Main Core
  * Flash split: 1.5MB M7 + 0.5MB M4
  *
+ * Version 1.5.0 - Automatic Sensor Monitoring and Safety
+ * =====================================================
+ * This version adds real-time sensor monitoring and automatic safety features:
+ *
+ * New Features in v1.5.0:
+ * - Periodic limit switch reading (50 Hz automatic polling)
+ * - Automatic motor halt when hardware limit is reached
+ * - Intelligent limit detection (only stops when moving into limit)
+ * - Automatic error reporting for limit conditions
+ * - Integration with emergency stop system
+ *
  * Version 1.4.0 - Extended I/O Capabilities
  * ==========================================
  * This version adds extensive input capabilities for commercial-grade applications:
@@ -430,6 +441,9 @@ void loop()
       --usbLedCounter;
     }
 
+    // Periodic sensor reading: Read limit switches every update cycle (50 Hz)
+    hardLimits = readLimitSwitches();
+
 #ifdef KILL_SWITCH_PIN
     eStopOn = !digitalRead(KILL_SWITCH_PIN);
     if (eStopOn != killSwitchState)
@@ -474,7 +488,52 @@ void loop()
     }
     if (!hardStop)
     {
-      if (motorsMoving && eStopOn) // add other conditions
+      // Check for limit switch triggers on moving motors (automatic triggering)
+      if (motorsMoving && hardLimits)
+      {
+        // Check each motor for limit collision
+        for (m = 0; m < 8 && m < MOTOR_COUNT; ++m)
+        {
+          motorPtr = &motors[m];
+          if (motorPtr->moving)
+          {
+            uint16_t lowBit = (1 << (m * 2));      // Bit for low limit
+            uint16_t highBit = (1 << (m * 2 + 1)); // Bit for high limit
+
+            // Check if this motor hit a limit switch
+            if (hardLimits & (lowBit | highBit))
+            {
+              // Determine which limit and direction
+              if ((hardLimits & highBit) && GET_MOTOR_DIR(m))
+              {
+                // Hit high limit while moving up
+                exceptionCode = DMC_ACK_ERR_HARD_UP;
+                limitStopMotor = m + 1;
+              }
+              else if ((hardLimits & lowBit) && !GET_MOTOR_DIR(m))
+              {
+                // Hit low limit while moving down
+                exceptionCode = DMC_ACK_ERR_HARD_LOW;
+                limitStopMotor = m + 1;
+              }
+              else
+              {
+                // Limit is triggered but motor moving away from it, continue
+                continue;
+              }
+
+              // Stop all motors immediately
+              hardStopCounter = 0;
+              hardStop = 1;
+              stopAll(1);
+              messageQueue |= DMC_MSG_FLAG_MOTOR_HARD_STOP;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!hardStop && motorsMoving && eStopOn) // e-stop condition
       {
         hardStopCounter = 0;
         hardStop = 1;

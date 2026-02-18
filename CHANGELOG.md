@@ -2,6 +2,39 @@
 
 All notable changes to the dmc-lite project will be documented in this file.
 
+## [1.5.0] - 2026-02-18
+
+### Added - Automatic Sensor Monitoring and Safety Features
+
+#### Periodic Sensor Reading
+- **Automatic limit switch monitoring**: Limit switches are now read automatically every update cycle (50 Hz)
+- **Real-time sensor polling**: hardLimits variable is continuously updated with current limit switch states
+- **Zero overhead**: Uses existing readLimitSwitches() function without additional memory allocation
+
+#### Automatic Motor Safety (Déclenchement automatique sur limites)
+- **Automatic triggering on limit detection**: Motors automatically stop when a hardware limit is reached
+- **Intelligent limit checking**: Only triggers when motor is moving toward the limit, allows movement away from limits
+- **Error reporting**: Automatically reports DMC_ACK_ERR_HARD_UP or DMC_ACK_ERR_HARD_LOW to host
+- **Emergency stop integration**: Limit detection uses same emergency stop mechanism as e-stop switch
+
+#### Safety Logic
+- Checks each motor (1-8) for limit collision during movement
+- Verifies motor direction to prevent false stops (only stops if moving into limit)
+- Stops all motors immediately upon limit detection for safety
+- Records which motor triggered the limit (limitStopMotor variable)
+- Integrates seamlessly with existing emergency stop system
+
+### Improved
+- Enhanced motor safety with real-time hardware limit monitoring
+- Better error reporting for limit conditions
+- More robust motion control system
+
+### Technical Details
+- No additional RAM overhead (uses existing variables)
+- No performance impact (integrates with existing 50 Hz update cycle)
+- Fully backward compatible with v1.4.0
+- Requires physical limit switches connected to configured pins to be effective
+
 ## [1.4.0] - 2026-02-18
 
 ### Added - Extended I/O Capabilities
