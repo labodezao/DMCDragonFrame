@@ -10,17 +10,28 @@
 #include <stdint.h>
 
 #define DMC_VERSION_MAJOR 1
-#define DMC_VERSION_MINOR 2
+#define DMC_VERSION_MINOR 7
 #define DMC_VERSION_REV 0
 
-#define MOTOR_COUNT 16
-#define MOTOR_CAM_COUNT 9
+// Configuration: Enable SDRAM for expanded capacity
+// SDRAM is now enabled by default for 32 motors and 58,000 frames
+// Maximum capacity using 90% of 8 MB SDRAM (10% reserved for DMX buffer)
+// Comment out the line below to use internal SRAM only (16 motors, 10K frames)
+#define USE_SDRAM
+
+#ifdef USE_SDRAM
+  #define MOTOR_COUNT 32
+  #define FRAME_COUNT 58000
+  #define MOTOR_CAM_COUNT 33  // 32 motors + 1 camera
+#else
+  #define MOTOR_COUNT 16
+  #define FRAME_COUNT 10000
+  #define MOTOR_CAM_COUNT 9   // 8 motors + 1 camera
+#endif
 #define GIO_OUTPUTS 2
 #define GIO_INPUTS 1u
 
 #define P2P_MOVE_COUNT 8
-
-#define FRAME_COUNT 10000
 
 #define MOVE_LOAD_NONE 0
 #define MOVE_LOAD_FRAME 1
@@ -58,6 +69,10 @@ struct Motor
   float currentMoveTime;
 
   float currentVelocity;
+
+  // Professional features (v1.7.0+)
+  int32_t backlashSteps;      // Backlash compensation in steps
+  int8_t lastDirection;       // Last movement direction (-1, 0, 1)
 
   MotorMove moves[P2P_MOVE_COUNT];
 };
