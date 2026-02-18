@@ -14,9 +14,9 @@
 #define DMC_VERSION_REV 0
 
 // Configuration: Enable SDRAM for expanded capacity
-// Uncomment the line below to use external SDRAM (8 MB)
-// This allows for 32 motors and 20,000 frames
-//#define USE_SDRAM
+// SDRAM is now enabled by default for 32 motors and 20,000 frames
+// Comment out the line below to use internal SRAM only (16 motors, 10K frames)
+#define USE_SDRAM
 
 #ifdef USE_SDRAM
   #define MOTOR_COUNT 32

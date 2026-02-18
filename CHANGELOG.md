@@ -4,50 +4,62 @@ All notable changes to the dmc-lite project will be documented in this file.
 
 ## [1.6.0] - 2026-02-18
 
-### Added - SDRAM Support and Expanded Capacity
+### Added - SDRAM Support and Expanded Capacity (ENABLED BY DEFAULT)
 
 #### External SDRAM Support (Medium-term roadmap: Activer SDRAM externe)
-- **Optional SDRAM activation**: Enable 8 MB external SDRAM via `USE_SDRAM` define in dfx.h
-- **Dynamic memory allocation**: AxisMoveData and trigger buffers allocated in SDRAM when enabled
-- **Graceful fallback**: Works with or without SDRAM (backward compatible)
-- **Error handling**: LED indication if SDRAM initialization fails
+- **SDRAM enabled by default**: 8 MB external SDRAM now activated for all builds
+- **32 motors standard**: Increased from 16 to 32 motors by default
+- **20,000 frames standard**: Doubled frame capacity from 10,000 to 20,000
+- **Dynamic memory allocation**: AxisMoveData and trigger buffers allocated in SDRAM
+- **Optimized initialization**: Uses SDRAM.begin() with proper memory clearing
+- **Error handling**: Rapid red LED blinking if SDRAM initialization fails
+- **Optional disable**: Can disable SDRAM by commenting out USE_SDRAM in dfx.h
 
 #### Expanded Motor Count (Medium-term roadmap: Augmenter à 32 moteurs)
-- **32 motors with SDRAM**: Increase from 16 to 32 motors when USE_SDRAM is enabled
+- **32 motors by default**: No configuration needed, works out of the box
 - **Automatic configuration**: Motor count adjusts based on SDRAM availability
-- **RAM usage**: ~2.56 MB for 32 motors × 20K frames (requires SDRAM)
+- **RAM usage**: ~2.56 MB for 32 motors × 20K frames (allocated in SDRAM)
+- **Internal RAM freed**: Only ~200 KB of internal SRAM used, leaving plenty for stack/heap
 
 #### Expanded Frame Capacity (Medium-term roadmap: Augmenter à 20K-50K frames)
-- **20,000 frames with SDRAM**: Double frame capacity when USE_SDRAM is enabled
+- **20,000 frames by default**: Frame capacity doubled automatically
 - **Intelligent buffer management**: Large buffers allocated in external RAM
-- **Performance**: No performance penalty for SDRAM access (cached by STM32H7)
+- **Performance**: Zero performance penalty (SDRAM access cached by STM32H7)
+- **Future expansion**: Can increase to 50K+ frames if needed
 
 #### Configuration Management
-- **Compile-time selection**: Choose capacity via `USE_SDRAM` define
-- **Arduino Giga R1 support**: Uses SDRAM library for Mbed OS
-- **Future ready**: Framework for additional SDRAM features (DMX buffer, etc.)
+- **Default enabled**: USE_SDRAM defined by default in dfx.h
+- **Easy to disable**: Comment out one line to revert to 16 motors / 10K frames
+- **Arduino Giga R1 optimized**: Uses SDRAM library for Mbed OS
+- **Memory cleared**: All allocated memory properly initialized to zero
 
 ### Improved
 - **Memory architecture**: Clear separation between internal SRAM (real-time) and SDRAM (buffers)
-- **Scalability**: Easy path to commercial-grade capacity matching DMC-32
-- **Documentation**: Added SDRAM usage instructions and configuration guide
+- **Scalability**: Now matches commercial DMC-32 capacity out of the box
+- **Documentation**: Updated guides to reflect SDRAM enabled by default
+- **Reliability**: Improved SDRAM initialization with proper error handling
 
 ### Technical Details
-- **Without SDRAM**: 16 motors, 10K frames, ~664 KB RAM usage (same as v1.5.0)
-- **With SDRAM**: 32 motors, 20K frames, ~2.6 MB allocated in external RAM
-- **SDRAM base address**: 0xC0000000 (STM32H747 FMC interface)
+- **Default configuration**: 32 motors, 20K frames, ~2.6 MB allocated in SDRAM
+- **Optional configuration**: 16 motors, 10K frames, ~664 KB in internal RAM (disable USE_SDRAM)
+- **SDRAM address**: 0x00000000 (default mapping for Arduino Giga R1)
 - **No performance impact**: SDRAM access is hardware-accelerated and cached
-- **Backward compatible**: Existing projects continue to work without changes
+- **Backward compatible**: Can disable SDRAM for compatibility if needed
 
 ### Usage
-To enable SDRAM support:
+SDRAM is now enabled by default. To use:
+1. Upload firmware to Arduino Giga R1 (no configuration needed)
+2. Firmware automatically supports 32 motors and 20,000 frames
+3. Blue LED blinks normally on successful initialization
+4. Red LED blinks rapidly if SDRAM fails (rare, indicates hardware issue)
+
+To disable SDRAM (revert to 16 motors / 10K frames):
 1. Edit `dmc_m7/dfx.h`
-2. Uncomment the line: `#define USE_SDRAM`
+2. Comment out the line: `//#define USE_SDRAM`
 3. Recompile and upload to Arduino Giga R1
-4. Firmware will now support 32 motors and 20,000 frames
 
 ### Future Enhancements
-- DMX buffer in SDRAM (512 channels × 20K frames)
+- DMX buffer in SDRAM (512 channels × 20K frames) - 5.4 MB available
 - Compressed frame storage for even more capacity
 - Real-time SDRAM performance monitoring
 

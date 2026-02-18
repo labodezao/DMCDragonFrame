@@ -6,16 +6,24 @@
  * Target core: Main Core
  * Flash split: 1.5MB M7 + 0.5MB M4
  *
- * Version 1.6.0 - SDRAM Support and Expanded Capacity
- * ===================================================
- * This version adds optional SDRAM support for expanded motor and frame capacity:
+ * Version 1.6.0 - SDRAM Support and Expanded Capacity (ENABLED BY DEFAULT)
+ * ========================================================================
+ * SDRAM is now activated by default for maximum capacity:
+ *
+ * With SDRAM Enabled (Default):
+ * - 32 stepper motors supported (double the previous limit)
+ * - 20,000 frames per motor (2× capacity)
+ * - 8 MB external SDRAM utilized efficiently
+ * - ~2.6 MB allocated for motor/frame data
+ * - ~5.4 MB available for future DMX buffer
+ * - To disable: Comment out USE_SDRAM in dfx.h
  *
  * New Features in v1.6.0:
- * - Optional SDRAM support (8 MB external memory)
- * - Expandable to 32 motors (with SDRAM enabled)
- * - Expandable to 20,000 frames (with SDRAM enabled)
- * - Backward compatible: Works with or without SDRAM
- * - Configure via USE_SDRAM define in dfx.h
+ * - SDRAM enabled by default (32 motors, 20K frames)
+ * - Dynamic memory allocation in external RAM
+ * - Optimized buffer management
+ * - Backward compatible (can disable SDRAM if needed)
+ * - LED error indication on SDRAM failure
  *
  * Version 1.5.0 - Automatic Sensor Monitoring and Safety
  * =====================================================
@@ -289,13 +297,15 @@ void setup()
   // Initialize SDRAM for expanded capacity (8 MB)
   // Allocate large buffers in external RAM for 32 motors and 20K frames
   #ifdef ARDUINO_ARCH_MBED_GIGA
-    SDRAM.begin(SDRAM_START_ADDRESS);
+    // Initialize SDRAM at default address (0x00000000)
+    SDRAM.begin();
 
-    // Allocate AxisMoveData arrays in SDRAM
+    // Allocate AxisMoveData arrays in SDRAM (32 motors × 20K frames)
     size_t moveSize = sizeof(AxisMoveData) * MOTOR_COUNT;
     move = (AxisMoveData*)SDRAM.malloc(moveSize);
     if (move == nullptr) {
-      // SDRAM allocation failed, halt with error indication
+      // SDRAM allocation failed, halt with rapid red LED blinking
+      pinMode(LEDR, OUTPUT);
       while(1) {
         digitalWrite(LEDR, LOW);
         delay(100);
@@ -304,10 +314,13 @@ void setup()
       }
     }
 
-    // Allocate trigger data in SDRAM
+    // Clear allocated memory
+    memset(move, 0, moveSize);
+
+    // Allocate trigger data in SDRAM (20K frames)
     triggerData = (uint8_t*)SDRAM.malloc(FRAME_COUNT);
     if (triggerData == nullptr) {
-      // SDRAM allocation failed, halt with error indication
+      // SDRAM allocation failed, halt with rapid red LED blinking
       while(1) {
         digitalWrite(LEDR, LOW);
         delay(100);
@@ -315,6 +328,9 @@ void setup()
         delay(100);
       }
     }
+
+    // Clear trigger data
+    memset(triggerData, 0, FRAME_COUNT);
   #else
     // Non-Giga boards without SDRAM library - shouldn't happen
     #error "USE_SDRAM is only supported on Arduino Giga R1"

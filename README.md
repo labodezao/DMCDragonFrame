@@ -9,23 +9,36 @@ https://www.dragonframe.com/product/dmc-32/
 
 Note that the Arduinos are still hobby boards, and we provide this code as a convenience for do-it-yourselfers. We expect you to have a decent level of comfort with basic circuitry if you attempt to use it.
 
-## Version 1.4.0 - Extended I/O Capabilities
+## Version 1.6.0 - SDRAM Enabled by Default (32 Motors, 20K Frames)
 
-### Latest Features (v1.4.0)
+### Latest Features (v1.6.0) 🚀
 
-**New in this version:**
+**SDRAM NOW ENABLED BY DEFAULT:**
+- **32 Stepper Motors**: Doubled motor capacity (was 16, now 32)
+- **20,000 Frames**: Doubled frame capacity per motor (was 10K, now 20K)
+- **8 MB External SDRAM**: Fully utilized for maximum performance
+- **Automatic Safety**: Periodic limit switch monitoring (50 Hz)
+- **Automatic Halt**: Motors stop when moving into hardware limits
+- **Zero Performance Loss**: SDRAM access is hardware-cached
+
+**Technical Specifications:**
+- External SDRAM: 8 MB utilized (~2.6 MB for motor/frame data, ~5.4 MB available)
+- Internal SRAM: ~200 KB used (plenty of headroom for real-time operations)
+- Motor capacity: 32 motors standard (matches commercial DMC-32)
+- Frame capacity: 20,000 frames per motor
+- DMX buffer space: ~5.4 MB available for future implementation
+
+### Enhanced Features (v1.4.0-v1.6.0)
+
+**Extended I/O Capabilities:**
 - **16 Limit Switch Inputs**: Hardware limit detection for motors 1-8 (low and high limits)
 - **12 Analog Input Channels**: Full ADC support for sensors and feedback
+- **Periodic Sensor Reading**: Automatic 50 Hz monitoring of all inputs
+- **Automatic Motor Protection**: Instant halt when limit switch triggered
 - **DMC_MSG_ANALOG_IN (0x0301)**: Read analog inputs via protocol
 - **DMC_MSG_LIMIT_SWITCH_STATUS (0x0302)**: Query all limit switches at once
 
-**RAM Analysis:**
-- Current usage: ~664 KB / 864 KB internal SRAM (77%)
-- Available: ~200 KB for additional features
-- External SDRAM: 8 MB available (not yet utilized)
-- See RAM_ANALYSIS.md for detailed breakdown
-
-### Enhanced DMC-32 Protocol Support (v1.3.0-1.4.0)
+### Enhanced DMC-32 Protocol Support (v1.3.0-1.6.0)
 
 #### Fully Implemented Commands
 

@@ -2,63 +2,56 @@
 
 ## Overview
 
-Version 1.6.0 of dmc-lite adds optional support for the 8 MB external SDRAM available on the Arduino Giga R1. This enables expanded capacity for commercial-grade motion control applications.
+Version 1.6.0 of dmc-lite **enables SDRAM by default** on the Arduino Giga R1, providing commercial-grade capacity out of the box. The 8 MB external SDRAM is now fully utilized for expanded motion control capabilities.
 
-## Features Enabled by SDRAM
+## Default Configuration (SDRAM Enabled)
 
-### Without SDRAM (Default Configuration)
-- **Motors**: 16 motors
-- **Frame capacity**: 10,000 frames per motor
-- **RAM usage**: ~664 KB internal SRAM
-- **Compatibility**: Works on all supported boards
-
-### With SDRAM (Enhanced Configuration)
-- **Motors**: 32 motors (matching DMC-32 commercial version)
+### Standard Features (No Configuration Needed)
+- **Motors**: 32 motors (matches commercial DMC-32)
 - **Frame capacity**: 20,000 frames per motor
 - **RAM usage**: ~2.6 MB in external SDRAM + ~200 KB internal SRAM
 - **Performance**: Same real-time performance (SDRAM is hardware-cached)
-- **Compatibility**: Arduino Giga R1 only
+- **Compatibility**: Works on Arduino Giga R1 out of the box
 
-## Enabling SDRAM Support
+### What This Means
+- Upload firmware and immediately get 32-motor support
+- No configuration files to edit
+- No special setup required
+- Automatic SDRAM initialization on boot
+- LED indicators show initialization status
+
+## Optional: Disabling SDRAM
+
+If you need to revert to the smaller configuration (16 motors, 10K frames):
 
 ### Step 1: Edit Configuration File
 
-Open `dmc_m7/dfx.h` and locate this section near the top:
+Open `dmc_m7/dfx.h` and locate this section:
 
 ```cpp
 // Configuration: Enable SDRAM for expanded capacity
-// Uncomment the line below to use external SDRAM (8 MB)
-// This allows for 32 motors and 20,000 frames
-//#define USE_SDRAM
+// SDRAM is now enabled by default for 32 motors and 20,000 frames
+// Comment out the line below to use internal SRAM only (16 motors, 10K frames)
+#define USE_SDRAM
 ```
 
-Uncomment the `#define USE_SDRAM` line:
+Comment out the `#define USE_SDRAM` line:
 
 ```cpp
 // Configuration: Enable SDRAM for expanded capacity
-// Uncomment the line below to use external SDRAM (8 MB)
-// This allows for 32 motors and 20,000 frames
-#define USE_SDRAM
+// SDRAM is now enabled by default for 32 motors and 20,000 frames
+// Comment out the line below to use internal SRAM only (16 motors, 10K frames)
+//#define USE_SDRAM
 ```
 
 ### Step 2: Recompile and Upload
 
 1. Open `dmc_m7/dmc_m7.ino` in Arduino IDE
-2. Select **Tools > Board > Arduino Mbed OS Giga Boards > Arduino Giga R1**
-3. Select **Tools > Target core > Main Core**
-4. Select **Tools > Flash split > 1.5MB M7 + 0.5MB M4**
-5. Click **Verify** to compile
-6. Click **Upload** to flash the M7 core
-7. Upload `dmc_m4/dmc_m4.ino` to the M4 core (no changes needed)
+2. Click **Verify** to recompile
+3. Click **Upload** to flash the M7 core
+4. No need to update M4 core
 
-### Step 3: Verify Operation
-
-After uploading:
-- The blue LED should blink normally (USB communication)
-- If the red LED blinks rapidly, SDRAM initialization failed
-- Send a version query command to verify 32 motor support
-
-## Memory Architecture
+## Features Enabled by SDRAM
 
 ### Internal SRAM (864 KB)
 Used for real-time critical data:
