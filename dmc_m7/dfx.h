@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #define DMC_VERSION_MAJOR 1
-#define DMC_VERSION_MINOR 6
+#define DMC_VERSION_MINOR 7
 #define DMC_VERSION_REV 0
 
 // Configuration: Enable SDRAM for expanded capacity
@@ -69,6 +69,10 @@ struct Motor
   float currentMoveTime;
 
   float currentVelocity;
+
+  // Professional features (v1.7.0+)
+  int32_t backlashSteps;      // Backlash compensation in steps
+  int8_t lastDirection;       // Last movement direction (-1, 0, 1)
 
   MotorMove moves[P2P_MOVE_COUNT];
 };
