@@ -2,23 +2,25 @@
 
 ## Overview
 
-Version 1.6.0 of dmc-lite **enables SDRAM by default** on the Arduino Giga R1, providing commercial-grade capacity out of the box. The 8 MB external SDRAM is now fully utilized for expanded motion control capabilities.
+Version 1.6.0 of dmc-lite **maximizes SDRAM usage by default** on the Arduino Giga R1, providing professional-grade capacity that exceeds commercial DMC-32 specifications. The 8 MB external SDRAM is now utilized at 90% capacity (10% reserved for DMX buffer and overhead).
 
-## Default Configuration (SDRAM Enabled)
+## Default Configuration (SDRAM Maximized)
 
 ### Standard Features (No Configuration Needed)
 - **Motors**: 32 motors (matches commercial DMC-32)
-- **Frame capacity**: 20,000 frames per motor
-- **RAM usage**: ~2.6 MB in external SDRAM + ~200 KB internal SRAM
+- **Frame capacity**: 58,000 frames per motor (2.9× commercial DMC-32's 20K)
+- **RAM usage**: ~7.14 MB in external SDRAM (89.2%) + ~200 KB internal SRAM
+- **Reserved space**: ~860 KB (10.8%) for DMX buffer and future features
 - **Performance**: Same real-time performance (SDRAM is hardware-cached)
 - **Compatibility**: Works on Arduino Giga R1 out of the box
 
 ### What This Means
-- Upload firmware and immediately get 32-motor support
+- Upload firmware and immediately get 32-motor, 58K-frame support
 - No configuration files to edit
 - No special setup required
 - Automatic SDRAM initialization on boot
 - LED indicators show initialization status
+- Exceeds commercial DMC-32 capacity out-of-the-box
 
 ## Optional: Disabling SDRAM
 
@@ -30,7 +32,8 @@ Open `dmc_m7/dfx.h` and locate this section:
 
 ```cpp
 // Configuration: Enable SDRAM for expanded capacity
-// SDRAM is now enabled by default for 32 motors and 20,000 frames
+// SDRAM is now enabled by default for 32 motors and 58,000 frames
+// Maximum capacity using 90% of 8 MB SDRAM (10% reserved for DMX buffer)
 // Comment out the line below to use internal SRAM only (16 motors, 10K frames)
 #define USE_SDRAM
 ```
@@ -39,7 +42,8 @@ Comment out the `#define USE_SDRAM` line:
 
 ```cpp
 // Configuration: Enable SDRAM for expanded capacity
-// SDRAM is now enabled by default for 32 motors and 20,000 frames
+// SDRAM is now enabled by default for 32 motors and 58,000 frames
+// Maximum capacity using 90% of 8 MB SDRAM (10% reserved for DMX buffer)
 // Comment out the line below to use internal SRAM only (16 motors, 10K frames)
 //#define USE_SDRAM
 ```
@@ -63,9 +67,10 @@ Used for real-time critical data:
 
 ### External SDRAM (8 MB)
 Used for large data buffers:
-- AxisMoveData arrays: 32 motors × 20K frames × 4 bytes = 2.56 MB
-- Trigger data: 20,000 bytes = 20 KB
-- **Available for future use**: ~5.4 MB (DMX buffers, etc.)
+- AxisMoveData arrays: 32 motors × 58K frames × 4 bytes = 7.42 MB
+- Trigger data: 58,000 bytes = 57 KB
+- **Total allocated**: ~7.14 MB (89.2% usage)
+- **Reserved for future use**: ~860 KB (10.8%) for DMX buffers and overhead
 
 ### Performance Considerations
 

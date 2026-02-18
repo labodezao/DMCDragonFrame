@@ -9,24 +9,24 @@ https://www.dragonframe.com/product/dmc-32/
 
 Note that the Arduinos are still hobby boards, and we provide this code as a convenience for do-it-yourselfers. We expect you to have a decent level of comfort with basic circuitry if you attempt to use it.
 
-## Version 1.6.0 - SDRAM Enabled by Default (32 Motors, 20K Frames)
+## Version 1.6.0 - SDRAM Maximized (32 Motors, 58K Frames)
 
 ### Latest Features (v1.6.0) 🚀
 
-**SDRAM NOW ENABLED BY DEFAULT:**
-- **32 Stepper Motors**: Doubled motor capacity (was 16, now 32)
-- **20,000 Frames**: Doubled frame capacity per motor (was 10K, now 20K)
-- **8 MB External SDRAM**: Fully utilized for maximum performance
+**SDRAM MAXIMIZED FOR ULTIMATE CAPACITY:**
+- **32 Stepper Motors**: Professional capacity (matches commercial DMC-32)
+- **58,000 Frames**: Nearly 3× commercial DMC-32 capacity per motor
+- **8 MB External SDRAM**: 90% utilized for maximum performance (10% reserved)
 - **Automatic Safety**: Periodic limit switch monitoring (50 Hz)
 - **Automatic Halt**: Motors stop when moving into hardware limits
 - **Zero Performance Loss**: SDRAM access is hardware-cached
 
 **Technical Specifications:**
-- External SDRAM: 8 MB utilized (~2.6 MB for motor/frame data, ~5.4 MB available)
+- External SDRAM: 7.14 MB utilized (89.2% usage, 10.8% free for DMX buffer)
 - Internal SRAM: ~200 KB used (plenty of headroom for real-time operations)
 - Motor capacity: 32 motors standard (matches commercial DMC-32)
-- Frame capacity: 20,000 frames per motor
-- DMX buffer space: ~5.4 MB available for future implementation
+- Frame capacity: 58,000 frames per motor (2.9× commercial DMC-32's 20K)
+- DMX buffer space: ~860 KB reserved for future implementation
 
 ### Enhanced Features (v1.4.0-v1.6.0)
 
@@ -45,7 +45,7 @@ Note that the Arduinos are still hobby boards, and we provide this code as a con
 **Motion Control:**
 - Point-to-point moves with acceleration/deceleration profiles
 - Jog mode with variable speed
-- Real-time motion playback (up to 10,000 frames)
+- Real-time motion playback (up to 58,000 frames)
 - Go Motion and Go Motion 2 with blur compensation
 - Motor coupling for synchronized multi-axis movement
 - Live control for independent motor speed adjustment

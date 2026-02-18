@@ -4,12 +4,12 @@ All notable changes to the dmc-lite project will be documented in this file.
 
 ## [1.6.0] - 2026-02-18
 
-### Added - SDRAM Support and Expanded Capacity (ENABLED BY DEFAULT)
+### Added - SDRAM Support and Maximized Capacity (ENABLED BY DEFAULT)
 
 #### External SDRAM Support (Medium-term roadmap: Activer SDRAM externe)
-- **SDRAM enabled by default**: 8 MB external SDRAM now activated for all builds
+- **SDRAM maximized by default**: 8 MB external SDRAM now uses 90% capacity (10% reserved)
 - **32 motors standard**: Increased from 16 to 32 motors by default
-- **20,000 frames standard**: Doubled frame capacity from 10,000 to 20,000
+- **58,000 frames standard**: Nearly 3× capacity vs commercial DMC-32 (20K frames)
 - **Dynamic memory allocation**: AxisMoveData and trigger buffers allocated in SDRAM
 - **Optimized initialization**: Uses SDRAM.begin() with proper memory clearing
 - **Error handling**: Rapid red LED blinking if SDRAM initialization fails
@@ -18,14 +18,14 @@ All notable changes to the dmc-lite project will be documented in this file.
 #### Expanded Motor Count (Medium-term roadmap: Augmenter à 32 moteurs)
 - **32 motors by default**: No configuration needed, works out of the box
 - **Automatic configuration**: Motor count adjusts based on SDRAM availability
-- **RAM usage**: ~2.56 MB for 32 motors × 20K frames (allocated in SDRAM)
+- **RAM usage**: ~7.14 MB for 32 motors × 58K frames (allocated in SDRAM)
 - **Internal RAM freed**: Only ~200 KB of internal SRAM used, leaving plenty for stack/heap
 
-#### Expanded Frame Capacity (Medium-term roadmap: Augmenter à 20K-50K frames)
-- **20,000 frames by default**: Frame capacity doubled automatically
+#### Maximized Frame Capacity (Medium-term roadmap: Augmenter à 20K-50K frames)
+- **58,000 frames by default**: Frame capacity maximized to use 90% of SDRAM
 - **Intelligent buffer management**: Large buffers allocated in external RAM
 - **Performance**: Zero performance penalty (SDRAM access cached by STM32H7)
-- **Future expansion**: Can increase to 50K+ frames if needed
+- **Reserved space**: 10% (~860 KB) reserved for DMX buffer and overhead
 
 #### Configuration Management
 - **Default enabled**: USE_SDRAM defined by default in dfx.h

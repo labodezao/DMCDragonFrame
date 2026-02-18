@@ -6,22 +6,22 @@
  * Target core: Main Core
  * Flash split: 1.5MB M7 + 0.5MB M4
  *
- * Version 1.6.0 - SDRAM Support and Expanded Capacity (ENABLED BY DEFAULT)
+ * Version 1.6.0 - SDRAM Maximized for Ultimate Capacity (ENABLED BY DEFAULT)
  * ========================================================================
- * SDRAM is now activated by default for maximum capacity:
+ * SDRAM is now maximized by default, using 90% capacity with 10% reserved:
  *
  * With SDRAM Enabled (Default):
- * - 32 stepper motors supported (double the previous limit)
- * - 20,000 frames per motor (2× capacity)
- * - 8 MB external SDRAM utilized efficiently
- * - ~2.6 MB allocated for motor/frame data
- * - ~5.4 MB available for future DMX buffer
+ * - 32 stepper motors supported (matches commercial DMC-32)
+ * - 58,000 frames per motor (2.9× commercial DMC-32's 20K capacity)
+ * - 8 MB external SDRAM utilized at 89.2% (7.14 MB allocated)
+ * - ~860 KB reserved (10.8%) for DMX buffer and overhead
  * - To disable: Comment out USE_SDRAM in dfx.h
  *
  * New Features in v1.6.0:
- * - SDRAM enabled by default (32 motors, 20K frames)
+ * - SDRAM maximized by default (32 motors, 58K frames)
+ * - Capacity exceeds commercial DMC-32 specifications
  * - Dynamic memory allocation in external RAM
- * - Optimized buffer management
+ * - Optimized buffer management with 10% safety margin
  * - Backward compatible (can disable SDRAM if needed)
  * - LED error indication on SDRAM failure
  *
