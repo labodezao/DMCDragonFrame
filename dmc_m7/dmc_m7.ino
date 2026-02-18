@@ -108,10 +108,22 @@ static int32_t loadMoveState;
  * Uploaded move data
  * When USE_SDRAM is enabled, these arrays are dynamically allocated in SDRAM
  * Otherwise, they use static allocation in internal SRAM
+ *
+ * DMX Buffer Configuration:
+ * - 512 channels maximum (DMX512 standard)
+ * - Reserved space: ~860 KB (10% of SDRAM) for future DMX implementation
+ * - Protocol ready, hardware pending (requires RS-485 transceiver)
+ *
+ * Current SDRAM usage (32 motors, 58K frames):
+ * - AxisMoveData: 7.42 MB (89.2%)
+ * - Trigger data: 57 KB (0.7%)
+ * - Reserved for DMX: ~860 KB (10.1%)
  */
 #ifdef USE_SDRAM
   static AxisMoveData *move = nullptr;
   static uint8_t *triggerData = nullptr;
+  // DMX buffer reserved but not yet allocated
+  // static uint8_t *dmxBuffer = nullptr;  // Future: 512 channels × frames
 #else
   static AxisMoveData move[MOTOR_COUNT];
   static uint8_t triggerData[FRAME_COUNT];
@@ -294,13 +306,14 @@ void setup()
   memset(sharedData, 0, sizeof(DmcSharedData));
 
 #ifdef USE_SDRAM
-  // Initialize SDRAM for expanded capacity (8 MB)
-  // Allocate large buffers in external RAM for 32 motors and 20K frames
+  // Initialize SDRAM for expanded capacity (8 MB total)
+  // Allocation strategy: 90% utilized, 10% reserved for DMX buffer
   #ifdef ARDUINO_ARCH_MBED_GIGA
     // Initialize SDRAM at default address (0x00000000)
     SDRAM.begin();
 
-    // Allocate AxisMoveData arrays in SDRAM (32 motors × 20K frames)
+    // Allocate AxisMoveData arrays in SDRAM (32 motors × 58K frames)
+    // Size: 32 × 58000 × 4 bytes = 7,424,000 bytes (~7.08 MB)
     size_t moveSize = sizeof(AxisMoveData) * MOTOR_COUNT;
     move = (AxisMoveData*)SDRAM.malloc(moveSize);
     if (move == nullptr) {
@@ -317,7 +330,8 @@ void setup()
     // Clear allocated memory
     memset(move, 0, moveSize);
 
-    // Allocate trigger data in SDRAM (20K frames)
+    // Allocate trigger data in SDRAM (58K frames)
+    // Size: 58000 bytes (~57 KB)
     triggerData = (uint8_t*)SDRAM.malloc(FRAME_COUNT);
     if (triggerData == nullptr) {
       // SDRAM allocation failed, halt with rapid red LED blinking
@@ -331,6 +345,12 @@ void setup()
 
     // Clear trigger data
     memset(triggerData, 0, FRAME_COUNT);
+
+    // DMX buffer allocation (reserved for future implementation)
+    // Remaining SDRAM: ~860 KB (10.8%) reserved for DMX512 lighting control
+    // Would allocate: 512 channels × frames for synchronized lighting
+    // Requires: RS-485 transceiver hardware (e.g., MAX485)
+    // Note: Protocol support already implemented in DMC_MSG_DMX and DMC_MSG_RT_UPLOAD_MOVE_DMX
   #else
     // Non-Giga boards without SDRAM library - shouldn't happen
     #error "USE_SDRAM is only supported on Arduino Giga R1"

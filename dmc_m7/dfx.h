@@ -22,12 +22,12 @@
 #ifdef USE_SDRAM
   #define MOTOR_COUNT 32
   #define FRAME_COUNT 58000
+  #define MOTOR_CAM_COUNT 33  // 32 motors + 1 camera
 #else
   #define MOTOR_COUNT 16
   #define FRAME_COUNT 10000
+  #define MOTOR_CAM_COUNT 9   // 8 motors + 1 camera
 #endif
-
-#define MOTOR_CAM_COUNT 9
 #define GIO_OUTPUTS 2
 #define GIO_INPUTS 1u
 
